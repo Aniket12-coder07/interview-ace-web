@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InterviewAce - AI Mock Interviews & Coding IDE</title>
+  <link rel="stylesheet" href="index.css">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="navbar">
+    <div class="brand">
+      <div class="brand-icon">
+        <i data-lucide="terminal"></i>
+      </div>
+      <span>InterviewAce</span>
+      <span class="status-pill success" style="font-size: 10px; padding: 2px 8px; margin-left: 6px;">Shipathon 2026</span>
+    </div>
+    <div class="nav-actions">
+      <!-- Audio SFX Toggle Button -->
+      <button class="btn-icon" id="toggle-audio-btn" title="Toggle Sound Effects & Audio AI Voice">
+        <i data-lucide="volume-2" id="audio-icon"></i>
+      </button>
+
+      <!-- Mobile Simulator View Toggle -->
+      <button class="btn-icon" id="toggle-mobile-view-btn" title="Toggle iPhone / Mobile View Frame">
+        <i data-lucide="smartphone"></i>
+      </button>
+
+      <!-- User Profile Badge -->
+      <div class="user-profile-badge" id="nav-profile-btn">
+        <div class="avatar" id="nav-avatar-char">N</div>
+        <div style="display: flex; flex-direction: column;">
+          <span style="font-weight: 600; font-size: 13px;" id="nav-user-name">Candidate</span>
+          <span style="font-size: 10px; color: var(--text-secondary);" id="nav-user-level">Senior AI Eng</span>
+        </div>
+      </div>
+
+      <button class="btn-icon" id="nav-history-btn" title="Past Sessions">
+        <i data-lucide="history"></i>
+      </button>
+      <button class="btn-icon" id="nav-settings-btn" title="Settings">
+        <i data-lucide="settings"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Application Container -->
+  <main class="app-container">
+
+    <!-- 1. ONBOARDING SCREEN -->
+    <section id="screen-onboarding" class="screen">
+      
+      <!-- Quota & Subscription Banner -->
+      <div class="glass-card" id="quota-banner">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <i data-lucide="zap" style="color: var(--status-warning);" id="quota-icon"></i>
+            <div>
+              <div style="font-weight: 600; font-size: 15px;" id="sub-title-text">Free Tier Plan</div>
+              <div style="font-size: 13px; color: var(--text-secondary);" id="sub-desc-text">2 of 3 free weekly interviews remaining</div>
+            </div>
+          </div>
+          <button class="btn-secondary" style="width: auto; padding: 6px 16px; font-size: 13px;" id="upgrade-btn-banner">
+            Upgrade ($4.99/mo)
+          </button>
+        </div>
+      </div>
+
+      <!-- Config & Session Settings Card -->
+      <div class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 600; font-size: 16px; margin-bottom: 2px;">Session Question Count</div>
+            <div style="font-size: 13px; color: var(--text-secondary);">Choose how many questions to simulate per interview</div>
+          </div>
+          <div class="tab-switcher" style="margin-bottom: 0; min-width: 260px;">
+            <button class="tab-btn" id="qlen-3-btn" onclick="setSessionLength(3)">3 Qs</button>
+            <button class="tab-btn active" id="qlen-5-btn" onclick="setSessionLength(5)">5 Qs</button>
+            <button class="tab-btn" id="qlen-10-btn" onclick="setSessionLength(10)">10 Qs</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 6px;">Target Role & Skills Track</h1>
+        <p style="color: var(--text-secondary); font-size: 14px;">Select your primary interview track and customize your technical skill set.</p>
+      </div>
+
+      <!-- Roles Selection List -->
+      <div class="roles-grid" id="roles-container">
+        <!-- Injected dynamically via app.js -->
+      </div>
+
+      <div style="margin-top: 32px;">
+        <button class="btn-primary" id="start-interview-btn">
+          <i data-lucide="play"></i>
+          <span>Start Mock Interview</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 2. MOCK INTERVIEW SCREEN -->
+    <section id="screen-interview" class="screen hidden">
+      
+      <!-- Progress Bar -->
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary);">
+          <span id="interview-role-badge">AI Engineer Interview</span>
+          <span id="interview-q-progress">Question 1 of 5</span>
+        </div>
+        <div style="height: 4px; background: var(--surface-card-light); border-radius: 2px; overflow: hidden;">
+          <div id="progress-bar-fill" style="width: 20%; height: 100%; background: var(--primary-mint); transition: width 0.3s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Question Mode Switcher Tabs -->
+      <div class="tab-switcher">
+        <button class="tab-btn active" id="tab-conceptual-btn">
+          <i data-lucide="message-square"></i>
+          <span>Conceptual Answer</span>
+        </button>
+        <button class="tab-btn" id="tab-coding-btn">
+          <i data-lucide="code"></i>
+          <span>Coding Challenge IDE</span>
+        </button>
+      </div>
+
+      <!-- Question Glass Card -->
+      <div class="glass-card glow" id="question-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <span class="status-pill info">
+            <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+            <span id="question-type-pill">Gemini 2.0 Question</span>
+          </span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn-icon" id="speak-q-btn" style="width: 28px; height: 28px;" title="Listen to AI Interviewer read question aloud">
+              <i data-lucide="volume-2" style="width: 14px; height: 14px; color: var(--secondary-cyan);"></i>
+            </button>
+            <span style="font-weight: 700; color: var(--text-muted);" id="q-number-pill">Q1</span>
+          </div>
+        </div>
+        <div id="question-text" style="font-size: 17px; font-weight: 500; line-height: 1.5; color: var(--text-primary);">
+          Loading question...
+        </div>
+      </div>
+
+      <!-- Conceptual Text / Voice Input Section -->
+      <div id="conceptual-form-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <label style="font-size: 14px; color: var(--text-secondary); font-weight: 500;">Your Response</label>
+          <button class="voice-btn" id="voice-input-btn">
+            <i data-lucide="mic" style="width: 16px; height: 16px;"></i>
+            <span id="voice-btn-text">Voice Input</span>
+          </button>
+        </div>
+        <textarea class="answer-input" id="answer-text" placeholder="Speak or type your structured technical response here..."></textarea>
+        
+        <button class="btn-primary" id="submit-answer-btn">
+          <i data-lucide="send"></i>
+          <span>Submit Answer for AI Review</span>
+        </button>
+      </div>
+
+      <!-- Coding Challenge IDE Section -->
+      <div id="coding-ide-section" class="hidden">
+        <div class="ide-container">
+          <!-- IDE Header Toolbar -->
+          <div class="ide-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Language:</span>
+              <select class="ide-lang-select" id="ide-lang-select">
+                <option value="javascript">JavaScript (Node.js)</option>
+                <option value="python">Python 3</option>
+                <option value="cpp">C++ 17</option>
+                <option value="java">Java 17</option>
+              </select>
+            </div>
+            <button class="btn-run" id="ide-run-btn">
+              <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+              <span>Run Code & Test</span>
+            </button>
+          </div>
+
+          <!-- Code Editor Body -->
+          <div class="ide-editor-wrapper">
+            <div class="ide-line-numbers" id="ide-line-numbers">
+              1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10
+            </div>
+            <textarea class="code-editor" id="code-editor-input" spellcheck="false" placeholder="// Write your solution function here..."></textarea>
+          </div>
+
+          <!-- Terminal Output Console -->
+          <div class="terminal-window">
+            <div class="terminal-header">Console stdout / stderr</div>
+            <pre id="terminal-stdout" style="font-family: 'JetBrains Mono', monospace;">Ready. Click 'Run Code & Test' to execute.</pre>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="submit-code-btn">
+          <i data-lucide="cpu"></i>
+          <span>Submit Code Solution for Gemini AI Evaluation</span>
+        </button>
+      </div>
+
+      <!-- Instant Feedback Review Card -->
+      <div id="feedback-section" class="hidden">
+        <div class="glass-card" style="border-color: var(--primary-mint); background: var(--surface-card-light);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-size: 16px; font-weight: 600;">AI Performance Review</div>
+            <span class="status-pill success" id="fb-score-pill">Score: 85/100</span>
+          </div>
+
+          <!-- Strengths -->
+          <div style="margin-bottom: 14px;">
+            <div style="font-size: 13px; font-weight: 600; color: var(--primary-mint); margin-bottom: 6px;">STRENGTHS</div>
+            <ul id="fb-strengths-list" style="list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14px;">
+              <!-- Dynamic -->
+            </ul>
+          </div>
+
+          <!-- Improvements -->
+          <div style="margin-bottom: 16px;">
+            <div style="font-size: 13px; font-weight: 600; color: var(--status-warning); margin-bottom: 6px;">WHAT TO IMPROVE</div>
+            <ul id="fb-improvements-list" style="list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14px;">
+              <!-- Dynamic -->
+            </ul>
+          </div>
+
+          <!-- Model Answer -->
+          <div style="background: rgba(15, 20, 24, 0.6); padding: 14px; border-radius: 12px; border: 1px solid var(--glass-border-subtle);">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--secondary-cyan); margin-bottom: 6px;">
+              <i data-lucide="star" style="width: 14px; height: 14px;"></i>
+              <span>Model Benchmark Solution</span>
+            </div>
+            <div id="fb-model-answer" style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; white-space: pre-wrap; font-family: 'JetBrains Mono', monospace;">
+              <!-- Dynamic -->
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="next-q-btn" style="margin-top: 10px;">
+          <span>Continue to Next Question</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- 3. SUMMARY SCREEN -->
+    <section id="screen-summary" class="screen hidden">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+        <div>
+          <h1 style="font-size: 24px; font-weight: 700;">Interview Summary</h1>
+          <div style="color: var(--text-secondary); font-size: 14px;" id="summary-role-text">Role: AI Engineer</div>
+        </div>
+        <span class="status-pill success">
+          <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i>
+          <span>Saved to History</span>
+        </span>
+      </div>
+
+      <!-- Readiness Score Gauge -->
+      <div class="glass-card glow" style="display: flex; align-items: center; gap: 24px;">
+        <div class="score-circle">
+          <div class="score-num" id="summary-score-num">88</div>
+          <div class="score-label">READINESS</div>
+        </div>
+        <div>
+          <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;" id="summary-headline">Strong Performance</div>
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;" id="summary-subtext">
+            Evaluated across 5 questions using Gemini 2.0 Flash interview rubric.
+          </div>
+        </div>
+      </div>
+
+      <!-- 4-Axis Rubric Breakdown Matrix -->
+      <div class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div style="font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="bar-chart-2" style="color: var(--secondary-cyan); width: 18px; height: 18px;"></i>
+            <span>4-Axis Evaluation Matrix</span>
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted);">Gemini 2.0 Flash Rubric</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+              <span style="color: var(--text-secondary);">Technical Depth & Domain Accuracy</span>
+              <span style="font-weight: 600; color: var(--primary-mint);" id="axis-depth-num">88%</span>
+            </div>
+            <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+              <div id="axis-depth-bar" style="width: 88%; height: 100%; background: linear-gradient(90deg, var(--primary-mint), var(--secondary-cyan)); transition: width 0.8s ease;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+              <span style="color: var(--text-secondary);">Algorithmic & Code Time Complexity</span>
+              <span style="font-weight: 600; color: var(--primary-mint);" id="axis-algo-num">85%</span>
+            </div>
+            <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+              <div id="axis-algo-bar" style="width: 85%; height: 100%; background: linear-gradient(90deg, var(--secondary-cyan), #4facfe); transition: width 0.8s ease;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+              <span style="color: var(--text-secondary);">Communication & Structured Reasoning</span>
+              <span style="font-weight: 600; color: var(--primary-mint);" id="axis-comm-num">90%</span>
+            </div>
+            <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+              <div id="axis-comm-bar" style="width: 90%; height: 100%; background: linear-gradient(90deg, #4facfe, #00f2fe); transition: width 0.8s ease;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+              <span style="color: var(--text-secondary);">Edge Case & System Resilience</span>
+              <span style="font-weight: 600; color: var(--primary-mint);" id="axis-edge-num">82%</span>
+            </div>
+            <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+              <div id="axis-edge-bar" style="width: 82%; height: 100%; background: linear-gradient(90deg, #00f2fe, var(--primary-mint)); transition: width 0.8s ease;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Improvement Tips -->
+      <div class="glass-card">
+        <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 12px;">
+          <i data-lucide="trending-up" style="color: var(--primary-mint); width: 18px; height: 18px;"></i>
+          <span>Top Improvement Focus</span>
+        </div>
+        <ul id="summary-tips-list" style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--text-secondary);">
+          <!-- Dynamic -->
+        </ul>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px;">
+        <button class="btn-primary" id="download-cert-btn" style="background: linear-gradient(135deg, var(--secondary-cyan), var(--primary-mint-dark));">
+          <i data-lucide="award"></i>
+          <span>Generate Official Completion Certificate</span>
+        </button>
+        <button class="btn-primary" id="summary-home-btn">
+          <i data-lucide="rotate-ccw"></i>
+          <span>Practice Another Interview</span>
+        </button>
+        <button class="btn-secondary" id="summary-history-btn">
+          <i data-lucide="history"></i>
+          <span>View Session History</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 4. HISTORY SCREEN -->
+    <section id="screen-history" class="screen hidden">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="font-size: 22px; font-weight: 600;">Interview History</h1>
+        <button class="btn-secondary" style="width: auto; padding: 6px 14px; font-size: 12px;" id="clear-history-btn">
+          Clear History
+        </button>
+      </div>
+
+      <div id="history-list-container">
+        <!-- Injected via app.js -->
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button class="btn-secondary" id="history-back-btn">
+          <i data-lucide="arrow-left"></i>
+          <span>Back to Onboarding</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- PROFILE & SKILLS MODAL -->
+  <div class="modal-overlay" id="profile-modal">
+    <div class="modal-content" style="max-width: 680px;">
+      <button class="btn-icon" style="position: absolute; top: 16px; right: 16px;" id="close-profile-btn">
+        <i data-lucide="x"></i>
+      </button>
+
+      <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">Candidate Profile & Expanded Skill Set</h2>
+
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-input" id="profile-name-input" placeholder="e.g. Neha Sharma">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Target Seniority / Experience Level</label>
+        <select class="form-select" id="profile-level-select">
+          <option value="Junior / Entry (0-2 yrs)">Junior / Entry (0-2 yrs)</option>
+          <option value="Mid-Level (2-5 yrs)">Mid-Level (2-5 yrs)</option>
+          <option value="Senior (5-8 yrs)" selected>Senior (5-8 yrs)</option>
+          <option value="Lead / Principal (8+ yrs)">Lead / Principal (8+ yrs)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Expanded Technical Skill Set (Click to toggle active skills)</label>
+        <div style="max-height: 260px; overflow-y: auto; padding-right: 6px;">
+          <div id="profile-skills-categories">
+            <!-- Injected via app.js -->
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="save-profile-btn" style="margin-top: 20px;">
+        <i data-lucide="check"></i>
+        <span>Save Candidate Profile</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- REVENUECAT PAYWALL MODAL -->
+  <div class="modal-overlay" id="paywall-modal">
+    <div class="modal-content">
+      <button class="btn-icon" style="position: absolute; top: 16px; right: 16px;" id="close-paywall-btn">
+        <i data-lucide="x"></i>
+      </button>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <span class="status-pill success" style="margin-bottom: 12px;">REVENUECAT PRO UNLOCK</span>
+        <h2 style="font-size: 22px; font-weight: 700; margin-top: 8px;">Ace Every Technical Interview</h2>
+        <p style="color: var(--text-secondary); font-size: 13px; margin-top: 6px;">Unlock unlimited practice sessions, coding IDE challenges & all domain roles.</p>
+      </div>
+
+      <!-- Feature Checklist -->
+      <div style="background: var(--surface-card-light); padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="check-circle-2" style="color: var(--primary-mint); width: 16px; height: 16px;"></i>
+          <span>Unlimited Gemini 2.0 Mock Sessions</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="check-circle-2" style="color: var(--primary-mint); width: 16px; height: 16px;"></i>
+          <span>Interactive In-App Coding IDE & Terminal Sandbox</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="check-circle-2" style="color: var(--primary-mint); width: 16px; height: 16px;"></i>
+          <span>All Specialized Domain Roles & 40+ Skill Tracks</span>
+        </div>
+      </div>
+
+      <!-- Pricing Options Tiers (Lower Accessible Pricing) -->
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+        <div class="role-card" onclick="selectPaywallPlan('weekly')" id="plan-card-weekly">
+          <div class="radio-circle"></div>
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 15px;">
+              <span>Weekly Pass</span>
+              <span style="color: var(--text-primary);">$1.99 / wk</span>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Flexible short-term practice</div>
+          </div>
+        </div>
+
+        <div class="role-card selected" onclick="selectPaywallPlan('monthly')" id="plan-card-monthly">
+          <div class="radio-circle"></div>
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 15px;">
+              <span>Monthly Pro</span>
+              <span style="color: var(--primary-mint);">$4.99 / mo</span>
+            </div>
+            <div style="font-size: 11px; color: var(--secondary-cyan); margin-top: 2px;">7-Day Free Trial Included (MOST POPULAR)</div>
+          </div>
+        </div>
+
+        <div class="role-card" onclick="selectPaywallPlan('annual')" id="plan-card-annual">
+          <div class="radio-circle"></div>
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 15px;">
+              <span>Annual Pass</span>
+              <span style="color: var(--text-primary);">$29.99 / yr</span>
+            </div>
+            <div style="font-size: 11px; color: var(--status-success); margin-top: 2px;">Save 50% ($2.49/mo equivalent)</div>
+          </div>
+        </div>
+
+        <div class="role-card" onclick="selectPaywallPlan('lifetime')" id="plan-card-lifetime">
+          <div class="radio-circle"></div>
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 15px;">
+              <span>Lifetime Access</span>
+              <span style="color: var(--text-primary);">$49.99 once</span>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">One-time payment, forever unlimited</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="start-trial-btn">
+        <i data-lucide="zap"></i>
+        <span>Start 7-Day Free Trial ($4.99/mo)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-content">
+      <button class="btn-icon" style="position: absolute; top: 16px; right: 16px;" id="close-settings-btn">
+        <i data-lucide="x"></i>
+      </button>
+
+      <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">Settings & Configuration</h2>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-size: 13px; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: 6px;">Gemini 2.0 Flash API Key</label>
+        <input type="password" id="gemini-key-input" style="width: 100%; background: var(--surface-card-light); border: 1px solid var(--glass-border-subtle); padding: 12px; border-radius: 10px; color: var(--text-primary); font-size: 14px;" placeholder="AIzaSy...">
+        <button class="btn-secondary" id="save-key-btn" style="margin-top: 10px; padding: 8px 16px; font-size: 13px;">Save Key</button>
+      </div>
+
+      <div style="border-top: 1px solid var(--glass-border-subtle); margin-top: 16px; padding-top: 16px;">
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">RevenueCat Shipathon Overrides</div>
+        <button class="btn-secondary" id="toggle-pro-btn" style="margin-bottom: 10px;">Toggle Test Pro Tier</button>
+        <button class="btn-secondary" id="reset-quota-btn">Reset Weekly 3-Interview Quota</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
