@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+node_modules/
+.env
+.DS_Store
+deploy_to_github.py
