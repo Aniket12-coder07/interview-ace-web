@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "name": "interviewace-ai-mock-interviews",
+  "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=0, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
