@@ -5,6 +5,23 @@ const CONFIG = {
   maxFreeWeekly: 3
 };
 
+async function fetchWithTimeout(resource, options = {}) {
+  const { timeout = 2500 } = options;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(resource, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    return response;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+}
+
 const SKILLS_CATEGORIES = {
   "AI, ML & Data Science": [
     'PyTorch', 'TensorFlow', 'RAG Pipeline', 'Transformers', 'LLM Fine-Tuning', 
@@ -160,7 +177,8 @@ let state = {
     level: 'Senior (5-8 yrs)',
     skills: ['PyTorch', 'Python', 'React', 'RAG Pipeline', 'SQL', 'System Design', 'Kubernetes', 'FastAPI']
   })),
-  audioEnabled: localStorage.getItem('interviewace_audio') !== 'false'
+  audioEnabled: localStorage.getItem('interviewace_audio') !== 'false',
+  selectedDifficulty: localStorage.getItem('interviewace_difficulty') || 'medium'
 };
 
 // Web Audio Synth Synthesizer for High-Converting Award-Winning Experience
@@ -254,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRolesList();
   updateQuotaUI();
   updateSessionLengthUI();
+  updateDifficultyUI();
   setupEventListeners();
   setupIDEListeners();
   lucide.createIcons();
@@ -263,20 +282,48 @@ function setSessionLength(count) {
   state.totalQCount = count;
   localStorage.setItem('interviewace_q_count', count.toString());
   updateSessionLengthUI();
+  playAudioSFX('click');
 }
 
 function updateSessionLengthUI() {
-  [3, 5, 10].forEach(n => {
-    const btn = document.getElementById(`qlen-${n}-btn`);
+  [3, 5, 10].forEach(count => {
+    const btn = document.getElementById(`qlen-${count}-btn`);
     if (btn) {
-      if (n === state.totalQCount) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
+      if (count === state.totalQCount) btn.classList.add('active');
+      else btn.classList.remove('active');
     }
   });
 }
+
+function setDifficultyLevel(level) {
+  state.selectedDifficulty = level;
+  localStorage.setItem('interviewace_difficulty', level);
+  updateDifficultyUI();
+  playAudioSFX('click');
+}
+
+function updateDifficultyUI() {
+  ['easy', 'medium', 'hard'].forEach(d => {
+    const btn = document.getElementById(`diff-${d}-btn`);
+    if (btn) {
+      if (d === state.selectedDifficulty) btn.classList.add('active');
+      else btn.classList.remove('active');
+    }
+  });
+
+  const badge = document.getElementById('difficulty-pill-badge');
+  if (badge) {
+    const labels = { easy: '🟢 Easy', medium: '🟡 Medium', hard: '🔴 Hard' };
+    badge.innerText = labels[state.selectedDifficulty] || 'Medium';
+  }
+}
+
+// Expose handlers globally to window object for 100% inline HTML click reliability
+window.setSessionLength = setSessionLength;
+window.setDifficultyLevel = setDifficultyLevel;
+window.selectRole = selectRole;
+window.selectPaywallPlan = selectPaywallPlan;
+window.toggleSkill = toggleSkill;
 
 function renderUserProfileUI() {
   const nameEl = document.getElementById('nav-user-name');
@@ -348,6 +395,24 @@ function showScreen(screenId) {
 }
 
 function setupEventListeners() {
+  // Question Count Selector Listeners
+  [3, 5, 10].forEach(n => {
+    const btn = document.getElementById(`qlen-${n}-btn`);
+    if (btn) btn.addEventListener('click', () => setSessionLength(n));
+  });
+
+  // Difficulty Level Selector Listeners
+  ['easy', 'medium', 'hard'].forEach(d => {
+    const btn = document.getElementById(`diff-${d}-btn`);
+    if (btn) btn.addEventListener('click', () => setDifficultyLevel(d));
+  });
+
+  // Paywall Tier Selection Listeners
+  ['weekly', 'monthly', 'annual', 'lifetime'].forEach(p => {
+    const card = document.getElementById(`plan-card-${p}`);
+    if (card) card.addEventListener('click', () => selectPaywallPlan(p));
+  });
+
   document.getElementById('start-interview-btn').addEventListener('click', () => {
     if (state.selectedRole.isPro && !state.isPro) {
       openPaywallModal(`Unlock ${state.selectedRole.title} with InterviewAce Pro.`);
@@ -534,7 +599,6 @@ async function fetchQuestion() {
   document.getElementById('interview-q-progress').innerText = `Question ${state.currentQIndex + 1} of ${state.totalQCount}`;
   document.getElementById('progress-bar-fill').style.width = `${((state.currentQIndex + 1) / state.totalQCount) * 100}%`;
   document.getElementById('q-number-pill').innerText = `Q${state.currentQIndex + 1}`;
-  document.getElementById('question-text').innerHTML = '<span class="spinner"></span> Generating AI Question...';
 
   document.getElementById('conceptual-form-section').classList.remove('hidden');
   document.getElementById('coding-ide-section').classList.add('hidden');
@@ -542,25 +606,10 @@ async function fetchQuestion() {
   document.getElementById('answer-text').value = '';
 
   const isCodingQuestion = (state.currentQIndex % 2 === 1); // Alternates coding challenges
-  const prompt = `You are a senior technical interviewer conducting an interview for a "${state.selectedRole.title}" role at ${state.userProfile.level} level.
-Candidate Skill Focus: ${state.userProfile.skills.join(', ')}.
-Generate question #${state.currentQIndex + 1} out of ${state.totalQCount}. 
-${isCodingQuestion ? 'This MUST be a practical coding algorithm or data structure challenge.' : 'Keep it concise, practical, and challenging.'}
-Return ONLY the question text.`;
+  const diffLabel = (state.selectedDifficulty || 'medium').toUpperCase();
 
-  try {
-    const res = await fetch(`${CONFIG.baseUrl}?key=${state.apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    });
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    state.currentQuestion = text ? text.trim() : getMockQuestion();
-  } catch (e) {
-    state.currentQuestion = getMockQuestion();
-  }
-
+  // INSTANT ZERO-LAG QUESTION DISPLAY (0ms)
+  state.currentQuestion = getMockQuestion(state.selectedRole.id, state.currentQIndex, isCodingQuestion);
   document.getElementById('question-text').innerText = state.currentQuestion;
 
   if (isCodingQuestion) {
@@ -569,6 +618,30 @@ Return ONLY the question text.`;
   } else {
     document.getElementById('question-type-pill').innerText = 'Gemini Conceptual Question';
     switchTab('conceptual');
+  }
+
+  // Non-blocking background AI enhancement
+  const prompt = `You are a senior technical interviewer conducting a ${diffLabel} difficulty interview for a "${state.selectedRole.title}" role.
+Difficulty Context: ${diffLabel} level. Candidate Skill Focus: ${state.userProfile.skills.join(', ')}. Session Seed: ${Date.now()}.
+Generate a fresh, unique ${diffLabel} question #${state.currentQIndex + 1} out of ${state.totalQCount}.
+${isCodingQuestion ? 'This MUST be a practical coding algorithm or data structure challenge.' : 'Keep it concise, practical, and challenging.'}
+Return ONLY the question text.`;
+
+  try {
+    const res = await fetchWithTimeout(`${CONFIG.baseUrl}?key=${state.apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      timeout: 2000
+    });
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (text && text.trim().length > 10) {
+      state.currentQuestion = `[${diffLabel}] ${text.trim()}`;
+      document.getElementById('question-text').innerText = state.currentQuestion;
+    }
+  } catch (e) {
+    // Keep instant mock question fallback
   }
 }
 
@@ -608,13 +681,14 @@ Return JSON ONLY:
 
   let feedback = null;
   try {
-    const res = await fetch(`${CONFIG.baseUrl}?key=${state.apiKey}`, {
+    const res = await fetchWithTimeout(`${CONFIG.baseUrl}?key=${state.apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { responseMimeType: 'application/json' }
-      })
+      }),
+      timeout: 2500
     });
     const data = await res.json();
     const rawJson = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -678,13 +752,14 @@ Return JSON ONLY:
 
   let feedback = null;
   try {
-    const res = await fetch(`${CONFIG.baseUrl}?key=${state.apiKey}`, {
+    const res = await fetchWithTimeout(`${CONFIG.baseUrl}?key=${state.apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { responseMimeType: 'application/json' }
-      })
+      }),
+      timeout: 2500
     });
     const data = await res.json();
     const rawJson = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -1019,17 +1094,126 @@ function isNonAnswer(answer) {
   return lower.length < 5 || nonAnswerPhrases.some(phrase => lower === phrase || lower.startsWith(phrase));
 }
 
-function getMockQuestion() {
-  const qMap = {
-    ai_engineer: 'How do you evaluate and prevent hallucination in a Retrieval-Augmented Generation (RAG) system?',
-    fullstack_eng: 'Explain how React Concurrent Mode & Server Components optimize rendering performance.',
-    backend_systems: 'How do you handle database write contention in a high-throughput microservices architecture?',
-    data_scientist: 'Walk me through how you detect and correct for selection bias in an offline A/B test.',
-    devops_cloud: 'How do you structure zero-downtime rolling updates using Kubernetes deployments & ingress controllers?',
-    sales_executive: 'How do you handle a prospect saying "Your product is 30% more expensive than your competitor"?',
-    recruiter: 'How do you calibrate compensation expectations early with senior engineering candidates?'
-  };
-  return qMap[state.selectedRole.id] || qMap.ai_engineer;
+const QUESTION_BANKS = {
+  ai_engineer: {
+    conceptual: [
+      'How do you evaluate and prevent hallucination in a Retrieval-Augmented Generation (RAG) system?',
+      'Explain the mechanism of Attention in Transformers and how Rotary Position Embeddings (RoPE) improve long-context window accuracy.',
+      'How do Low-Rank Adaptation (LoRA) and QLoRA fine-tune large language models efficiently without full parameter updates?',
+      'Walk me through how vector indexing algorithms like HNSW and IVF-PQ accelerate similarity search in Vector Databases.',
+      'How do guardrail systems (e.g. NeMo Guardrails, Guardrails AI) enforce safety policies and topic constraint boundaries on LLM outputs?',
+      'How do you measure Context Precision, Context Recall, and Answer Faithfulness using RAGAS evaluation metrics?'
+    ],
+    coding: [
+      'Write a function to calculate Cosine Similarity between two 1D dense embedding vectors.',
+      'Implement a sliding-window text chunking function that splits text into chunks of N words with K overlapping words.',
+      'Write a function to compute Top-K sampling probabilities given a raw logit vector and a temperature parameter T.',
+      'Implement a naive vector dot product search over an array of embedding vectors to find the Top-1 nearest neighbor.'
+    ]
+  },
+  fullstack_eng: {
+    conceptual: [
+      'Explain how React Concurrent Mode, Server Components, and Streaming SSR optimize initial page load and interactivity metrics.',
+      'How do you prevent SQL injection, XSS attacks, and CSRF vulnerabilities across a full-stack Node.js + React application?',
+      'Compare client-side caching strategies (SWR, TanStack Query) vs Server-Side Redis caching for dynamic user data feeds.',
+      'How do WebSockets, Server-Sent Events (SSE), and Long Polling differ for real-time bidirectional messaging?',
+      'Walk me through Web Performance Optimization: Critical Rendering Path, Code-Splitting, LCP, and CLS core web vitals.'
+    ],
+    coding: [
+      'Write a JavaScript function to implement a debounced function `debounce(fn, delay)` that handles rapid user input events.',
+      'Implement a deep clone algorithm in JavaScript that handles nested objects, arrays, and primitive data types.',
+      'Write a function to flatten a deeply nested array of arbitrary depth into a single 1D array.',
+      'Implement an event emitter class (`EventEmitter`) with `on`, `off`, and `emit` methods.'
+    ]
+  },
+  backend_systems: {
+    conceptual: [
+      'How do you handle database write contention and race conditions in a high-throughput microservices architecture?',
+      'Explain the CAP Theorem and how databases like Apache Cassandra and PostgreSQL handle network partitions differently.',
+      'How do distributed locks (e.g. Redlock algorithm using Redis) ensure idempotency across distributed worker nodes?',
+      'Walk me through database partitioning (sharding) strategies: Hash Sharding vs Range Sharding.',
+      'Explain Message Queue trade-offs: Kafka (log-based event streaming) vs RabbitMQ (AMQP message broker).'
+    ],
+    coding: [
+      'Implement an LRU (Least Recently Used) Cache data structure with O(1) time complexity for get and put operations.',
+      'Write an algorithm to implement a Token Bucket Rate Limiter that allows at most K requests per second.',
+      'Write a function to detect if a directed graph contains a cycle using Topological Sort or DFS.',
+      'Implement a dynamic programming algorithm to solve the 0/1 Knapsack Problem or Min Coin Change.'
+    ]
+  },
+  data_scientist: {
+    conceptual: [
+      'Walk me through how you detect and correct for selection bias and sample ratio mismatch (SRM) in an offline A/B test.',
+      'How do Gradient Boosting Machines (XGBoost / LightGBM) differ from Random Forests in handling bias vs variance?',
+      'Explain how ROC-AUC, Precision-Recall curves, and F1-Score differ for highly imbalanced classification datasets.',
+      'How do SHAP (SHapley Additive exPlanations) values provide model interpretability for complex neural networks?',
+      'Explain how K-Fold Cross Validation prevents data leakage during feature engineering and hyperparameter tuning.'
+    ],
+    coding: [
+      'Write a function to calculate the Gini Impurity for a list of binary classification labels.',
+      'Implement the K-Means clustering assignment step given data points and centroid coordinates.',
+      'Write a function to impute missing numerical values in a dataset using column median interpolation.',
+      'Write an algorithm to compute the Pearson Correlation Coefficient between two numerical arrays.'
+    ]
+  },
+  devops_cloud: {
+    conceptual: [
+      'How do you structure zero-downtime rolling updates and blue-green deployments using Kubernetes & Ingress Controllers?',
+      'Explain Infrastructure as Code (IaC) drift detection, state locking, and module modularity in Terraform for multi-cloud teams.',
+      'How do you configure Prometheus and Grafana alerting thresholds for CPU throttling, memory leaks, and 5xx error spikes?',
+      'Compare AWS VPC Peering vs AWS Transit Gateway for multi-region hybrid cloud architecture.',
+      'Explain container security hardening best practices for Dockerfiles and Kubernetes Pod Security Standards.'
+    ],
+    coding: [
+      'Write a script or regex parser to parse HTTP Nginx server log lines and count total 5xx status codes.',
+      'Write a function to validate if a YAML/JSON Kubernetes deployment spec contains required memory and CPU resource limits.',
+      'Write a script to recursively traverse a file directory and identify files larger than a given size threshold.',
+      'Implement a function to generate a standard Cron schedule string given target hour, minute, and day parameters.'
+    ]
+  },
+  sales_executive: {
+    conceptual: [
+      'How do you handle an enterprise prospect saying "Your product is 30% more expensive than your main competitor"?',
+      'Walk me through how you apply the MEDDPICC framework to qualify an enterprise SaaS sales pipeline opportunity.',
+      'How do you turn around a stalled enterprise deal when your executive champion leaves the prospect company mid-cycle?',
+      'Explain your multi-threading outreach strategy for reaching multiple decision makers across a target Fortune 500 account.',
+      'How do you structure a successful Technical Proof of Concept (POC) with clear success metrics and closing deadlines?'
+    ],
+    coding: [
+      'Write a function to calculate Annual Recurring Revenue (ARR), Churn Rate, and Net Revenue Retention (NRR) from a customer dataset.',
+      'Write a pipeline scoring algorithm that ranks prospective lead accounts based on engagement score weights.',
+      'Implement a tier-based commission calculator given base target quotas and accelerator multipliers.'
+    ]
+  },
+  recruiter: {
+    conceptual: [
+      'How do you calibrate compensation expectations early with senior engineering candidates without losing their interest?',
+      'What outbound sourcing strategies do you use to engage passive Staff/Principal Engineers who receive dozens of recruiter emails daily?',
+      'How do you handle an engineering hiring manager who rejects 95% of candidates at the initial resume screen stage?',
+      'Walk me through your offer closing workflow when a candidate receives competing counter-offers from FAANG companies.',
+      'How do you design a structured competency-based interview rubric to minimize interviewer bias across hiring panels?'
+    ],
+    coding: [
+      'Write a function to compute candidate funnel conversion rates across Resume Screen, Phone Screen, Onsite, and Offer stages.',
+      'Write a keyword extraction function that matches candidate resume skills against target job description requirements.',
+      'Implement a pipeline capacity planning function to estimate total recruiter outbound touches needed to make N engineering hires.'
+    ]
+  }
+};
+
+function getMockQuestion(roleId = 'ai_engineer', qIndex = 0, isCoding = false) {
+  const roleBank = QUESTION_BANKS[roleId] || QUESTION_BANKS.ai_engineer;
+  const list = isCoding ? roleBank.coding : roleBank.conceptual;
+  
+  // Dynamic Hourly Seed rotates questions every hour!
+  const hourSeed = Math.floor(Date.now() / (3600 * 1000));
+  const diffOffset = state.selectedDifficulty === 'easy' ? 0 : (state.selectedDifficulty === 'medium' ? 2 : 4);
+  
+  const index = (qIndex + hourSeed + diffOffset) % list.length;
+  const baseQuestion = list[index] || list[0];
+
+  const diffTag = state.selectedDifficulty === 'easy' ? '[🟢 EASY]' : (state.selectedDifficulty === 'medium' ? '[🟡 MEDIUM]' : '[🔴 HARD]');
+  return `${diffTag} ${baseQuestion}`;
 }
 
 function getMockFeedback(answer) {
