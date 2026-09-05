@@ -170,6 +170,8 @@ let state = {
   currentQIndex: 0,
   totalQCount: parseInt(localStorage.getItem('interviewace_q_count') || '5', 10),
   currentQuestion: '',
+  conceptualQuestion: '',
+  codingQuestion: '',
   sessionFeedback: [],
   isListening: false,
   userProfile: JSON.parse(localStorage.getItem('interviewace_user_profile') || JSON.stringify({
@@ -492,17 +494,25 @@ function switchTab(tab) {
   const codingBtn = document.getElementById('tab-coding-btn');
   const conceptualForm = document.getElementById('conceptual-form-section');
   const codingForm = document.getElementById('coding-ide-section');
+  const questionTypePill = document.getElementById('question-type-pill');
+  const questionTextEl = document.getElementById('question-text');
 
   if (tab === 'conceptual') {
     conceptualBtn.classList.add('active');
     codingBtn.classList.remove('active');
     conceptualForm.classList.remove('hidden');
     codingForm.classList.add('hidden');
+    if (questionTypePill) questionTypePill.innerText = 'Gemini Conceptual Question';
+    state.currentQuestion = state.conceptualQuestion || getMockQuestion(state.selectedRole.id, state.currentQIndex, false);
+    if (questionTextEl) questionTextEl.innerText = state.currentQuestion;
   } else {
     codingBtn.classList.add('active');
     conceptualBtn.classList.remove('active');
     codingForm.classList.remove('hidden');
     conceptualForm.classList.add('hidden');
+    if (questionTypePill) questionTypePill.innerText = 'Gemini Coding Challenge';
+    state.currentQuestion = state.codingQuestion || getMockQuestion(state.selectedRole.id, state.currentQIndex, true);
+    if (questionTextEl) questionTextEl.innerText = state.currentQuestion;
     updateIDELanguageTemplate();
   }
 }
@@ -600,32 +610,25 @@ async function fetchQuestion() {
   document.getElementById('progress-bar-fill').style.width = `${((state.currentQIndex + 1) / state.totalQCount) * 100}%`;
   document.getElementById('q-number-pill').innerText = `Q${state.currentQIndex + 1}`;
 
-  document.getElementById('conceptual-form-section').classList.remove('hidden');
-  document.getElementById('coding-ide-section').classList.add('hidden');
   document.getElementById('feedback-section').classList.add('hidden');
   document.getElementById('answer-text').value = '';
 
   const isCodingQuestion = (state.currentQIndex % 2 === 1); // Alternates coding challenges
   const diffLabel = (state.selectedDifficulty || 'medium').toUpperCase();
 
-  // INSTANT ZERO-LAG QUESTION DISPLAY (0ms)
-  state.currentQuestion = getMockQuestion(state.selectedRole.id, state.currentQIndex, isCodingQuestion);
-  document.getElementById('question-text').innerText = state.currentQuestion;
+  // Load dedicated questions for BOTH conceptual and coding modes
+  state.conceptualQuestion = getMockQuestion(state.selectedRole.id, state.currentQIndex, false);
+  state.codingQuestion = getMockQuestion(state.selectedRole.id, state.currentQIndex, true);
 
-  if (isCodingQuestion) {
-    document.getElementById('question-type-pill').innerText = 'Gemini Coding Challenge';
-    switchTab('coding');
-  } else {
-    document.getElementById('question-type-pill').innerText = 'Gemini Conceptual Question';
-    switchTab('conceptual');
-  }
+  // Switch to the appropriate mode tab for this question index
+  switchTab(isCodingQuestion ? 'coding' : 'conceptual');
 
   // Non-blocking background AI enhancement
+  const isCoding = isCodingQuestion;
   const prompt = `You are a senior technical interviewer conducting a ${diffLabel} difficulty interview for a "${state.selectedRole.title}" role.
 Difficulty Context: ${diffLabel} level. Candidate Skill Focus: ${state.userProfile.skills.join(', ')}. Session Seed: ${Date.now()}.
-Generate a fresh, unique ${diffLabel} question #${state.currentQIndex + 1} out of ${state.totalQCount}.
-${isCodingQuestion ? 'This MUST be a practical coding algorithm or data structure challenge.' : 'Keep it concise, practical, and challenging.'}
-Return ONLY the question text.`;
+Generate a fresh, unique ${diffLabel} ${isCoding ? 'practical coding algorithm or data structure challenge with clear input/output requirements' : 'concise conceptual technical question'} #${state.currentQIndex + 1} out of ${state.totalQCount}.
+${isCoding ? 'Return ONLY the practical coding problem description.' : 'Keep it concise, practical, and challenging. Return ONLY the question text.'}`;
 
   try {
     const res = await fetchWithTimeout(`${CONFIG.baseUrl}?key=${state.apiKey}`, {
@@ -637,8 +640,20 @@ Return ONLY the question text.`;
     const data = await res.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (text && text.trim().length > 10) {
-      state.currentQuestion = `[${diffLabel}] ${text.trim()}`;
-      document.getElementById('question-text').innerText = state.currentQuestion;
+      const generated = `[${diffLabel}] ${text.trim()}`;
+      if (isCoding) {
+        state.codingQuestion = generated;
+        if (state.activeTab === 'coding') {
+          state.currentQuestion = state.codingQuestion;
+          document.getElementById('question-text').innerText = state.currentQuestion;
+        }
+      } else {
+        state.conceptualQuestion = generated;
+        if (state.activeTab === 'conceptual') {
+          state.currentQuestion = state.conceptualQuestion;
+          document.getElementById('question-text').innerText = state.currentQuestion;
+        }
+      }
     }
   } catch (e) {
     // Keep instant mock question fallback
