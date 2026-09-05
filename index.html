@@ -72,15 +72,34 @@
 
       <!-- Config & Session Settings Card -->
       <div class="glass-card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-weight: 600; font-size: 16px; margin-bottom: 2px;">Session Question Count</div>
-            <div style="font-size: 13px; color: var(--text-secondary);">Choose how many questions to simulate per interview</div>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <!-- Question Count Selector -->
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600; font-size: 15px; margin-bottom: 2px;">Session Question Count</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">Choose how many questions to simulate per interview</div>
+            </div>
+            <div class="tab-switcher" style="margin-bottom: 0; min-width: 240px;">
+              <button class="tab-btn" id="qlen-3-btn" onclick="setSessionLength(3)">3 Qs</button>
+              <button class="tab-btn active" id="qlen-5-btn" onclick="setSessionLength(5)">5 Qs</button>
+              <button class="tab-btn" id="qlen-10-btn" onclick="setSessionLength(10)">10 Qs</button>
+            </div>
           </div>
-          <div class="tab-switcher" style="margin-bottom: 0; min-width: 260px;">
-            <button class="tab-btn" id="qlen-3-btn" onclick="setSessionLength(3)">3 Qs</button>
-            <button class="tab-btn active" id="qlen-5-btn" onclick="setSessionLength(5)">5 Qs</button>
-            <button class="tab-btn" id="qlen-10-btn" onclick="setSessionLength(10)">10 Qs</button>
+
+          <!-- Difficulty Level Selector (Easy, Medium, Hard) -->
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--glass-border-subtle); padding-top: 14px;">
+            <div>
+              <div style="font-weight: 600; font-size: 15px; margin-bottom: 2px; display: flex; align-items: center; gap: 6px;">
+                <span>Interview Difficulty Level</span>
+                <span class="status-pill warning" style="font-size: 10px; padding: 2px 6px;" id="difficulty-pill-badge">Medium</span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary);">Adjust problem complexity, algorithm difficulty & evaluation strictness</div>
+            </div>
+            <div class="tab-switcher" style="margin-bottom: 0; min-width: 270px;">
+              <button class="tab-btn" id="diff-easy-btn" onclick="setDifficultyLevel('easy')">🟢 Easy</button>
+              <button class="tab-btn active" id="diff-medium-btn" onclick="setDifficultyLevel('medium')">🟡 Medium</button>
+              <button class="tab-btn" id="diff-hard-btn" onclick="setDifficultyLevel('hard')">🔴 Hard</button>
+            </div>
           </div>
         </div>
       </div>
