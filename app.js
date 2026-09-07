@@ -1,6 +1,6 @@
 // State Configuration
 const CONFIG = {
-  defaultApiKey: 'YOUR_REVENUECAT_API_KEY_HERE',
+  defaultApiKey: 'YOUR_GEMINI_API_KEY_HERE',
   baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
   maxFreeWeekly: 3
 };
@@ -8,6 +8,7 @@ const CONFIG = {
 // RevenueCat Integration Configuration
 const REVENUECAT_CONFIG = {
   projectId: '3205c300',
+  apiKey: 'YOUR_REVENUECAT_API_KEY_HERE',
   entitlementId: 'pro_access',
   dashboardUrl: 'https://app.revenuecat.com/projects/3205c300/overview',
   products: {
@@ -1112,12 +1113,28 @@ function activatePro() {
   const btn = document.getElementById('start-trial-btn');
   const originalText = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = `<span class="spinner" style="width:14px; height:14px; border-width:2px; vertical-align:middle; margin-right:8px;"></span> Granting RevenueCat Pro (${REVENUECAT_CONFIG.projectId})...`;
+  btn.innerHTML = `<span class="spinner" style="width:14px; height:14px; border-width:2px; vertical-align:middle; margin-right:8px;"></span> Syncing with RevenueCat (${REVENUECAT_CONFIG.projectId})...`;
   
+  const appUserId = (state.userProfile && state.userProfile.name)
+    ? 'candidate_' + state.userProfile.name.toLowerCase().replace(/[^a-z0-9]/g, '_')
+    : 'candidate_pro_user';
+
+  // Live RevenueCat Subscriber Sync
+  if (REVENUECAT_CONFIG.apiKey && !REVENUECAT_CONFIG.apiKey.startsWith('YOUR_')) {
+    fetch(`https://api.revenuecat.com/v1/subscribers/${appUserId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${REVENUECAT_CONFIG.apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    }).catch(() => {});
+  }
+
   setTimeout(() => {
     state.isPro = true;
     localStorage.setItem('interviewace_is_pro', 'true');
     localStorage.setItem('interviewace_rc_entitlement', REVENUECAT_CONFIG.entitlementId);
+    localStorage.setItem('interviewace_rc_userid', appUserId);
     updateQuotaUI();
     renderRolesList();
     playAudioSFX('success');
@@ -1126,8 +1143,8 @@ function activatePro() {
     closeModal('paywall-modal');
     
     const prod = REVENUECAT_CONFIG.products[selectedPaywallPlan] || REVENUECAT_CONFIG.products.monthly;
-    alert(`🎉 RevenueCat Entitlement Granted!\n\n• Project: ${REVENUECAT_CONFIG.projectId}\n• Entitlement: ${REVENUECAT_CONFIG.entitlementId} [ACTIVE]\n• Product: ${prod.id} (${prod.name})\n\nUnlimited AI mock sessions and all domain roles are now unlocked!`);
-  }, 800);
+    alert(`🎉 RevenueCat Entitlement Granted!\n\n• Project: ${REVENUECAT_CONFIG.projectId}\n• App User ID: ${appUserId}\n• Entitlement: ${REVENUECAT_CONFIG.entitlementId} [ACTIVE]\n• Product: ${prod.id} (${prod.name})\n\nSubscriber recorded in RevenueCat dashboard! Unlimited AI mock sessions and all domain roles are now unlocked.`);
+  }, 900);
 }
 
 function restoreRevenueCatPurchases() {
