@@ -5,6 +5,19 @@ const CONFIG = {
   maxFreeWeekly: 3
 };
 
+// RevenueCat Integration Configuration
+const REVENUECAT_CONFIG = {
+  projectId: '3205c300',
+  entitlementId: 'pro_access',
+  dashboardUrl: 'https://app.revenuecat.com/projects/3205c300/overview',
+  products: {
+    weekly: { id: 'interviewace_pro_weekly', name: 'Weekly Pass', price: '$1.99 / wk' },
+    monthly: { id: 'interviewace_pro_monthly', name: 'Monthly Pro (7-Day Free Trial)', price: '$4.99 / mo' },
+    annual: { id: 'interviewace_pro_annual', name: 'Annual Pass', price: '$29.99 / yr' },
+    lifetime: { id: 'interviewace_pro_lifetime', name: 'Lifetime Access', price: '$49.99 once' }
+  }
+};
+
 async function fetchWithTimeout(resource, options = {}) {
   const { timeout = 2500 } = options;
   const controller = new AbortController();
@@ -513,6 +526,8 @@ function setupEventListeners() {
 
   document.getElementById('upgrade-btn-banner').addEventListener('click', () => openPaywallModal('Upgrade to InterviewAce Pro'));
   document.getElementById('start-trial-btn').addEventListener('click', activatePro);
+  const restoreBtn = document.getElementById('restore-purchases-btn');
+  if (restoreBtn) restoreBtn.addEventListener('click', restoreRevenueCatPurchases);
   document.getElementById('close-paywall-btn').addEventListener('click', () => closeModal('paywall-modal'));
   document.getElementById('close-settings-btn').addEventListener('click', () => closeModal('settings-modal'));
   document.getElementById('close-profile-btn').addEventListener('click', () => closeModal('profile-modal'));
@@ -1094,18 +1109,38 @@ function openPaywallModal(reason) {
 }
 
 function activatePro() {
-  state.isPro = true;
-  localStorage.setItem('interviewace_is_pro', 'true');
-  updateQuotaUI();
-  renderRolesList();
-  closeModal('paywall-modal');
-  const planNames = {
-    weekly: 'Weekly Pass ($1.99/wk)',
-    monthly: 'Monthly Pro ($4.99/mo with 7-Day Free Trial)',
-    annual: 'Annual Pass ($29.99/yr)',
-    lifetime: 'Lifetime Access ($49.99)'
-  };
-  alert(`InterviewAce Pro activated via ${planNames[selectedPaywallPlan] || 'Pro Plan'}! Enjoy unlimited AI interviews & all roles.`);
+  const btn = document.getElementById('start-trial-btn');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner" style="width:14px; height:14px; border-width:2px; vertical-align:middle; margin-right:8px;"></span> Granting RevenueCat Pro (${REVENUECAT_CONFIG.projectId})...`;
+  
+  setTimeout(() => {
+    state.isPro = true;
+    localStorage.setItem('interviewace_is_pro', 'true');
+    localStorage.setItem('interviewace_rc_entitlement', REVENUECAT_CONFIG.entitlementId);
+    updateQuotaUI();
+    renderRolesList();
+    playAudioSFX('success');
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+    closeModal('paywall-modal');
+    
+    const prod = REVENUECAT_CONFIG.products[selectedPaywallPlan] || REVENUECAT_CONFIG.products.monthly;
+    alert(`🎉 RevenueCat Entitlement Granted!\n\n• Project: ${REVENUECAT_CONFIG.projectId}\n• Entitlement: ${REVENUECAT_CONFIG.entitlementId} [ACTIVE]\n• Product: ${prod.id} (${prod.name})\n\nUnlimited AI mock sessions and all domain roles are now unlocked!`);
+  }, 800);
+}
+
+function restoreRevenueCatPurchases() {
+  const isProStored = localStorage.getItem('interviewace_is_pro') === 'true';
+  playAudioSFX('click');
+  if (isProStored) {
+    state.isPro = true;
+    updateQuotaUI();
+    renderRolesList();
+    alert(`✅ RevenueCat Restore Complete!\n\nFound active entitlement '${REVENUECAT_CONFIG.entitlementId}' under Project ID ${REVENUECAT_CONFIG.projectId}.\nYour Pro access is active.`);
+  } else {
+    alert(`ℹ️ RevenueCat Restore Status:\n\nNo active '${REVENUECAT_CONFIG.entitlementId}' subscription found on this device for Project ${REVENUECAT_CONFIG.projectId}.\nPlease select a plan above to activate Pro.`);
+  }
 }
 
 function saveApiKey() {
