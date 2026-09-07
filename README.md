@@ -30,6 +30,7 @@
    - Algorithmic evaluation comparing candidate code against optimal benchmark solutions.
 
 3. **💳 RevenueCat Paywall & Flexible Subscription Monetization**
+   - **RevenueCat Project ID:** `3205c300` ([Dashboard](https://app.revenuecat.com/projects/3205c300/overview))
    - Integrated with RevenueCat REST API & Web SDK.
    - Weekly ($2.99), Monthly ($9.99), Annual ($39.99), and Lifetime ($49.99) accessible tiers.
    - Soft paywall triggers upon quota exhaustion (3 free weekly sessions) and role-based gating.
