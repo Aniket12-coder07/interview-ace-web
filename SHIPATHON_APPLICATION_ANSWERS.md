@@ -42,7 +42,9 @@ Use this document to quickly fill out the official **RevenueCat Shipathon** subm
 
 ## 💳 4. How did you integrate RevenueCat? (Monetization & Entitlements)
 
-### A. Entitlement Architecture
+### A. Project Metadata & Entitlement Architecture
+* **RevenueCat Project ID**: `3205c300`
+* **RevenueCat Project Dashboard**: `https://app.revenuecat.com/projects/3205c300/overview`
 * **Entitlement ID**: `pro_access`
 * **Gated Pro Features**:
   1. **Unlimited AI Mock Sessions**: Bypasses the 3-session/week free tier limit.
