@@ -455,17 +455,20 @@
         <i data-lucide="x"></i>
       </button>
 
-      <div style="text-align: center; margin-bottom: 20px;">
-        <span class="status-pill success" style="margin-bottom: 12px;">REVENUECAT PRO UNLOCK</span>
-        <h2 style="font-size: 22px; font-weight: 700; margin-top: 8px;">Ace Every Technical Interview</h2>
+      <div style="text-align: center; margin-bottom: 16px;">
+        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(232, 74, 95, 0.12); border: 1px solid rgba(232, 74, 95, 0.35); padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #E84A5F; letter-spacing: 0.5px; margin-bottom: 10px;">
+          <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
+          <span>REVENUECAT PROJECT: 3205c300 • ENTITLEMENT: pro_access</span>
+        </div>
+        <h2 style="font-size: 22px; font-weight: 700; margin-top: 4px;">Ace Every Technical Interview</h2>
         <p style="color: var(--text-secondary); font-size: 13px; margin-top: 6px;">Unlock unlimited practice sessions, coding IDE challenges & all domain roles.</p>
       </div>
 
       <!-- Feature Checklist -->
-      <div style="background: var(--surface-card-light); padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+      <div style="background: var(--surface-card-light); padding: 14px 16px; border-radius: 12px; margin-bottom: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; border: 1px solid var(--glass-border-subtle);">
         <div style="display: flex; align-items: center; gap: 10px;">
           <i data-lucide="check-circle-2" style="color: var(--primary-mint); width: 16px; height: 16px;"></i>
-          <span>Unlimited Gemini 2.0 Mock Sessions</span>
+          <span>Unlimited Gemini 2.0 Mock Sessions (Bypasses weekly limit)</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
           <i data-lucide="check-circle-2" style="color: var(--primary-mint); width: 16px; height: 16px;"></i>
@@ -473,12 +476,12 @@
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
           <i data-lucide="check-circle-2" style="color: var(--primary-mint); width: 16px; height: 16px;"></i>
-          <span>All Specialized Domain Roles & 40+ Skill Tracks</span>
+          <span>All Specialized Domain Roles (DevOps, Sales, Recruiter)</span>
         </div>
       </div>
 
-      <!-- Pricing Options Tiers (Lower Accessible Pricing) -->
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+      <!-- Pricing Options Tiers (RevenueCat Product Catalog) -->
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
         <div class="role-card" onclick="selectPaywallPlan('weekly')" id="plan-card-weekly">
           <div class="radio-circle"></div>
           <div style="flex: 1;">
@@ -486,7 +489,10 @@
               <span>Weekly Pass</span>
               <span style="color: var(--text-primary);">$1.99 / wk</span>
             </div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Flexible short-term practice</div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+              <span>Flexible short-term practice</span>
+              <code style="font-size: 10px; color: var(--secondary-cyan);">interviewace_pro_weekly</code>
+            </div>
           </div>
         </div>
 
@@ -497,7 +503,10 @@
               <span>Monthly Pro</span>
               <span style="color: var(--primary-mint);">$4.99 / mo</span>
             </div>
-            <div style="font-size: 11px; color: var(--secondary-cyan); margin-top: 2px;">7-Day Free Trial Included (MOST POPULAR)</div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--secondary-cyan); margin-top: 2px;">
+              <span>7-Day Free Trial Included (MOST POPULAR)</span>
+              <code style="font-size: 10px;">interviewace_pro_monthly</code>
+            </div>
           </div>
         </div>
 
@@ -508,7 +517,10 @@
               <span>Annual Pass</span>
               <span style="color: var(--text-primary);">$29.99 / yr</span>
             </div>
-            <div style="font-size: 11px; color: var(--status-success); margin-top: 2px;">Save 50% ($2.49/mo equivalent)</div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--status-success); margin-top: 2px;">
+              <span>Save 50% ($2.49/mo equivalent)</span>
+              <code style="font-size: 10px;">interviewace_pro_annual</code>
+            </div>
           </div>
         </div>
 
@@ -519,15 +531,28 @@
               <span>Lifetime Access</span>
               <span style="color: var(--text-primary);">$49.99 once</span>
             </div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">One-time payment, forever unlimited</div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+              <span>One-time unlock, forever access</span>
+              <code style="font-size: 10px;">interviewace_pro_lifetime</code>
+            </div>
           </div>
         </div>
       </div>
 
-      <button class="btn-primary" id="start-trial-btn">
+      <button class="btn-primary" id="start-trial-btn" style="width: 100%;">
         <i data-lucide="zap"></i>
         <span>Start 7-Day Free Trial ($4.99/mo)</span>
       </button>
+
+      <!-- RevenueCat Footer Links -->
+      <div style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 14px; font-size: 11px; color: var(--text-muted);">
+        <button id="restore-purchases-btn" style="background: none; border: none; color: var(--primary-mint); cursor: pointer; text-decoration: underline; font-size: 11px; font-family: inherit;">Restore Purchases</button>
+        <span>•</span>
+        <a href="https://app.revenuecat.com/projects/3205c300/overview" target="_blank" style="color: var(--text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+          <span>RevenueCat Dashboard (3205c300)</span>
+          <i data-lucide="external-link" style="width: 11px; height: 11px;"></i>
+        </a>
+      </div>
     </div>
   </div>
 
