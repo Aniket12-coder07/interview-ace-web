@@ -180,7 +180,8 @@ let state = {
     skills: ['PyTorch', 'Python', 'React', 'RAG Pipeline', 'SQL', 'System Design', 'Kubernetes', 'FastAPI']
   })),
   audioEnabled: localStorage.getItem('interviewace_audio') !== 'false',
-  selectedDifficulty: localStorage.getItem('interviewace_difficulty') || 'medium'
+  selectedDifficulty: localStorage.getItem('interviewace_difficulty') || 'medium',
+  theme: localStorage.getItem('interviewace_theme') || 'dark'
 };
 
 // Web Audio Synth Synthesizer for High-Converting Award-Winning Experience
@@ -270,6 +271,7 @@ if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   renderUserProfileUI();
   renderRolesList();
   updateQuotaUI();
@@ -279,6 +281,33 @@ document.addEventListener('DOMContentLoaded', () => {
   setupIDEListeners();
   lucide.createIcons();
 });
+
+function initTheme() {
+  const currentTheme = state.theme || 'dark';
+  applyTheme(currentTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  state.theme = newTheme;
+  applyTheme(newTheme);
+  playAudioSFX('click');
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('interviewace_theme', theme);
+  const icon = document.getElementById('theme-toggle-icon');
+  const btn = document.getElementById('theme-toggle-btn');
+  if (icon) {
+    icon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+    lucide.createIcons();
+  }
+  if (btn) {
+    btn.setAttribute('title', theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+  }
+}
 
 function setSessionLength(count) {
   state.totalQCount = count;
@@ -437,6 +466,11 @@ function setupEventListeners() {
     lucide.createIcons();
     playAudioSFX('click');
   });
+
+  const themeBtn = document.getElementById('theme-toggle-btn');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', toggleTheme);
+  }
 
   const speakBtn = document.getElementById('speak-q-btn');
   if (speakBtn) speakBtn.addEventListener('click', speakCurrentQuestion);
