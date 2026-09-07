@@ -1,6 +1,7 @@
+.venv/
 __pycache__/
-*.py[cod]
-node_modules/
-.env
-.DS_Store
-deploy_to_github.py
+*.pyc
+.vscode/
+test_*.wav
+test_*.mp4
+check_repo.py
