@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InterviewAce - Official Demo Video with Audio Voiceover</title>
+  <link rel="stylesheet" href="index.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --player-bg: #0B0F14;
+      --player-card: rgba(21, 27, 33, 0.85);
+      --player-border: rgba(255, 255, 255, 0.1);
+      --primary: #22E6B0;
+      --primary-glow: rgba(34, 230, 176, 0.35);
+      --accent: #8A5CF6;
+      --player-topbar: rgba(11, 15, 20, 0.8);
+      --player-text: #E2E8F0;
+      --player-title: #FFFFFF;
+      --player-glass-bg: rgba(255, 255, 255, 0.06);
+    }
+
+    [data-theme="light"] {
+      --player-bg: #F3F6F9;
+      --player-card: #FFFFFF;
+      --player-border: rgba(0, 0, 0, 0.08);
+      --primary: #0D9488;
+      --primary-glow: rgba(13, 148, 136, 0.25);
+      --accent: #6D28D9;
+      --player-topbar: rgba(255, 255, 255, 0.9);
+      --player-text: #334155;
+      --player-title: #0F172A;
+      --player-glass-bg: rgba(0, 0, 0, 0.04);
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 10%, #151d26 0%, #080b0f 100%);
+      color: var(--player-text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    [data-theme="light"] body {
+      background: radial-gradient(circle at 50% 10%, #E2E8F0 0%, #F8FAFC 100%);
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 28px;
+      background: var(--player-topbar);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--player-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--player-title);
+    }
+
+    .brand-badge {
+      background: rgba(34, 230, 176, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(34, 230, 176, 0.4);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-glass {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--player-border);
+      color: #F1F5F9;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-glass:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #080B0F;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      box-shadow: 0 4px 14px var(--primary-glow);
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(34, 230, 176, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .player-container {
+      max-width: 1240px;
+      width: 92%;
+      margin: 28px auto 40px auto;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 28px;
+      flex: 1;
+    }
+
+    @media (max-width: 1024px) {
+      .player-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .video-viewport {
+      background: #000;
+      border-radius: 16px;
+      border: 1px solid var(--player-border);
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .video-element-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video, .animated-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .custom-controls {
+      background: rgba(11, 15, 20, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 16px 20px;
+      border-top: 1px solid var(--player-border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .progress-bar-container {
+      position: relative;
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 4px;
+      width: 0%;
+      position: relative;
+    }
+
+    .progress-scrubber {
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      right: -7px;
+      top: -3px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      display: none;
+    }
+
+    .progress-bar-container:hover .progress-scrubber {
+      display: block;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .control-left, .control-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .control-btn {
+      background: none;
+      border: none;
+      color: #E2E8F0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .control-btn:hover {
+      color: var(--primary);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .play-master-btn {
+      width: 42px;
+      height: 42px;
+      background: var(--primary);
+      color: #080B0F;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 14px var(--primary-glow);
+    }
+
+    .play-master-btn:hover {
+      background: #3affcb;
+      transform: scale(1.05);
+      color: #080B0F;
+    }
+
+    .timestamp-label {
+      font-size: 13px;
+      font-family: monospace;
+      color: #94A3B8;
+    }
+
+    /* Sidebar info */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .glass-box {
+      background: var(--player-card);
+      border: 1px solid var(--player-border);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    .glass-box h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+    }
+
+    .chapter-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+    }
+
+    .chapter-item:hover, .chapter-item.active {
+      background: rgba(34, 230, 176, 0.08);
+      border-color: rgba(34, 230, 176, 0.3);
+    }
+
+    .chapter-item.active .chapter-name {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .chapter-time {
+      font-size: 11px;
+      color: #64748B;
+      font-family: monospace;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .transcript-box {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #CBD5E1;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .transcript-segment {
+      padding: 8px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      transition: background 0.3s ease;
+    }
+
+    .transcript-segment.highlight {
+      background: rgba(138, 92, 246, 0.2);
+      border-left: 3px solid var(--accent);
+      color: #fff;
+    }
+
+    .downloads-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header class="top-bar">
+    <div class="brand-title">
+      <div style="background: var(--primary); color:#080B0F; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+        <i data-lucide="video"></i>
+      </div>
+      <span>InterviewAce</span>
+      <span class="brand-badge">Official Video Presentation</span>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html" class="btn-glass" id="back-to-app-btn">
+        <i data-lucide="arrow-left"></i> Launch Live App
+      </a>
+      <button class="btn-glass" id="theme-toggle-btn" title="Toggle Dark / Light Mode" style="padding: 8px 12px; cursor: pointer;">
+        <i data-lucide="sun" id="theme-toggle-icon" style="width: 16px; height: 16px;"></i>
+      </button>
+      <a href="https://github.com/Aniket12-coder07/interview-ace-web" target="_blank" class="btn-glass">
+        <i data-lucide="github"></i> GitHub Repo
+      </a>
+      <a href="interviewace_demo_with_audio.mp4" download="InterviewAce_Demo_Shipathon2026.mp4" class="btn-primary" id="download-mp4-cta">
+        <i data-lucide="download"></i> Download Video (MP4)
+      </a>
+    </div>
+  </header>
+
+  <!-- Player Layout -->
+  <main class="player-container">
+    
+    <!-- Left Column: Video Screen & Player Controls -->
+    <div class="video-viewport">
+      <div class="video-element-container" id="video-container">
+        <!-- HTML5 Video Player -->
+        <video id="main-video" playsinline preload="auto">
+          <source src="interviewace_demo_with_audio.mp4" type="video/mp4">
+          <source src="interviewace_demo_video.webp" type="image/webp">
+          Your browser does not support the video tag.
+        </video>
+        <!-- Standalone synchronized audio fallback -->
+        <audio id="voiceover-audio" src="interviewace_voiceover.wav" preload="auto"></audio>
+      </div>
+
+      <!-- Controls -->
+      <div class="custom-controls">
+        <!-- Progress Bar -->
+        <div class="progress-bar-container" id="progress-container">
+          <div class="progress-bar" id="progress-fill">
+            <div class="progress-scrubber"></div>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <div class="control-left">
+            <button class="control-btn play-master-btn" id="play-pause-btn" title="Play/Pause">
+              <i data-lucide="play" id="play-icon"></i>
+            </button>
+
+            <button class="control-btn" id="mute-btn" title="Mute/Unmute">
+              <i data-lucide="volume-2" id="volume-icon"></i>
+            </button>
+
+            <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" style="width: 70px; accent-color: var(--primary);">
+
+            <span class="timestamp-label" id="time-display">00:00 / 01:34</span>
+          </div>
+
+          <div class="control-right">
+            <button class="btn-glass" id="speed-btn" style="padding: 4px 10px; font-size: 12px;">1x</button>
+            <button class="control-btn" id="fullscreen-btn" title="Fullscreen">
+              <i data-lucide="maximize"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Interactive Chapters & Live Script Transcript -->
+    <div class="sidebar">
+      
+      <!-- Video Chapters -->
+      <div class="glass-box">
+        <h3><i data-lucide="list-video"></i> Video Chapters</h3>
+        <div id="chapters-list">
+          <div class="chapter-item active" data-start="0">
+            <span class="chapter-name">1. The Hook & Problem</span>
+            <span class="chapter-time">0:00</span>
+          </div>
+          <div class="chapter-item" data-start="14">
+            <span class="chapter-name">2. Dashboard & Career Tracks</span>
+            <span class="chapter-time">0:14</span>
+          </div>
+          <div class="chapter-item" data-start="32">
+            <span class="chapter-name">3. Gemini 2.0 & Voice Dictation</span>
+            <span class="chapter-time">0:32</span>
+          </div>
+          <div class="chapter-item" data-start="48">
+            <span class="chapter-name">4. Coding Challenge & Sandbox</span>
+            <span class="chapter-time">0:48</span>
+          </div>
+          <div class="chapter-item" data-start="64">
+            <span class="chapter-name">5. 4-Axis AI Rubric Scoring</span>
+            <span class="chapter-time">1:04</span>
+          </div>
+          <div class="chapter-item" data-start="78">
+            <span class="chapter-name">6. RevenueCat 4-Tier Paywall</span>
+            <span class="chapter-time">1:18</span>
+          </div>
+          <div class="chapter-item" data-start="90">
+            <span class="chapter-name">7. Mobile Simulator & Summary</span>
+            <span class="chapter-time">1:30</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Synced Narration Transcript -->
+      <div class="glass-box">
+        <h3><i data-lucide="mic"></i> Voiceover Transcript</h3>
+        <div class="transcript-box" id="transcript-container">
+          <div class="transcript-segment highlight" data-start="0" data-end="14">
+            "Preparing for senior tech interviews is stressful and expensive, with human coaches charging upwards of $200 an hour. Meet InterviewAce: the AI-powered technical mock interviewer and coding IDE platform, monetized seamlessly with RevenueCat."
+          </div>
+          <div class="transcript-segment" data-start="14" data-end="32">
+            "From our dark glassmorphic dashboard, candidates can track their weekly free session quota, adjust interview length from 3 to 10 questions, and select from 7 specialized engineering career tracks."
+          </div>
+          <div class="transcript-segment" data-start="32" data-end="48">
+            "Starting an interview connects candidates directly to Google Gemini 2.0 Flash. Candidates can listen to the AI interviewer read the question aloud, or dictate their answers hands-free using real-time speech recognition."
+          </div>
+          <div class="transcript-segment" data-start="48" data-end="64">
+            "Switching to the Coding Challenge tab dynamically loads an independent algorithmic problem. The in-browser IDE supports JavaScript, Python, C++, and Java, executing code with live terminal output in milliseconds."
+          </div>
+          <div class="transcript-segment" data-start="64" data-end="78">
+            "Submitting your response triggers an instant 4-axis rubric evaluation: grading Technical Depth, Algorithmic Complexity, Communication, and Edge Cases with strict anti-cheating scoring."
+          </div>
+          <div class="transcript-segment" data-start="78" data-end="90">
+            "To practice without limits, candidates can unlock Pro access via our high-converting RevenueCat paywall, featuring weekly, annual, or a monthly plan with an included 7-day free trial."
+          </div>
+          <div class="transcript-segment" data-start="90" data-end="96">
+            "InterviewAce: democratizing elite interview preparation, powered by Gemini 2.0 Flash and monetized with RevenueCat."
+          </div>
+        </div>
+      </div>
+
+      <!-- Asset Links & Downloads -->
+      <div class="glass-box">
+        <h3><i data-lucide="file-down"></i> Assets for Judges</h3>
+        <div class="downloads-grid">
+          <a href="interviewace_demo_with_audio.mp4" download class="btn-glass" style="font-size: 11px; justify-content: center;">
+            <i data-lucide="video"></i> MP4 Video
+          </a>
+          <a href="interviewace_voiceover.wav" download class="btn-glass" style="font-size: 11px; justify-content: center;">
+            <i data-lucide="headphones"></i> Audio WAV
+          </a>
+          <a href="interview_ace_banner.jpg" download class="btn-glass" style="font-size: 11px; justify-content: center;">
+            <i data-lucide="image"></i> 16:9 Banner
+          </a>
+          <a href="SHIPATHON_APPLICATION_ANSWERS.md" class="btn-glass" style="font-size: 11px; justify-content: center;">
+            <i data-lucide="file-text"></i> Pitch Deck
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    const video = document.getElementById('main-video');
+    const audio = document.getElementById('voiceover-audio');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const playIcon = document.getElementById('play-icon');
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const timeDisplay = document.getElementById('time-display');
+    const muteBtn = document.getElementById('mute-btn');
+    const volumeIcon = document.getElementById('volume-icon');
+    const volumeSlider = document.getElementById('volume-slider');
+    const speedBtn = document.getElementById('speed-btn');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const chapters = document.querySelectorAll('.chapter-item');
+    const segments = document.querySelectorAll('.transcript-segment');
+
+    let isPlaying = false;
+    let speeds = [1, 1.25, 1.5, 2];
+    let speedIdx = 0;
+
+    function togglePlay() {
+      if (video.paused) {
+        video.play().catch(() => {});
+        if (audio.src && audio.paused) {
+          audio.play().catch(() => {});
+        }
+        isPlaying = true;
+        playPauseBtn.innerHTML = '<i data-lucide="pause"></i>';
+      } else {
+        video.pause();
+        audio.pause();
+        isPlaying = false;
+        playPauseBtn.innerHTML = '<i data-lucide="play"></i>';
+      }
+      lucide.createIcons();
+    }
+
+    playPauseBtn.addEventListener('click', togglePlay);
+    video.addEventListener('click', togglePlay);
+
+    // Sync audio with video time
+    video.addEventListener('timeupdate', () => {
+      const current = video.currentTime;
+      const duration = video.duration || audio.duration || 94.8;
+      
+      const percent = (current / duration) * 100;
+      progressFill.style.width = percent + '%';
+
+      const mins = Math.floor(current / 60);
+      const secs = Math.floor(current % 60).toString().padStart(2, '0');
+      const durMins = Math.floor(duration / 60);
+      const durSecs = Math.floor(duration % 60).toString().padStart(2, '0');
+      timeDisplay.textContent = `${mins}:${secs} / ${durMins}:${durSecs}`;
+
+      // Keep audio closely in sync
+      if (Math.abs(audio.currentTime - current) > 0.3) {
+        audio.currentTime = current;
+      }
+
+      // Highlight active chapter
+      chapters.forEach(ch => {
+        const start = parseFloat(ch.getAttribute('data-start'));
+        if (current >= start) {
+          chapters.forEach(c => c.classList.remove('active'));
+          ch.classList.add('active');
+        }
+      });
+
+      // Highlight active transcript segment
+      segments.forEach(seg => {
+        const start = parseFloat(seg.getAttribute('data-start'));
+        const end = parseFloat(seg.getAttribute('data-end'));
+        if (current >= start && current < end) {
+          segments.forEach(s => s.classList.remove('highlight'));
+          seg.classList.add('highlight');
+          seg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    });
+
+    // Seek on progress click
+    progressContainer.addEventListener('click', (e) => {
+      const rect = progressContainer.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      const duration = video.duration || audio.duration || 94.8;
+      video.currentTime = pos * duration;
+      audio.currentTime = pos * duration;
+    });
+
+    // Chapter clicking
+    chapters.forEach(ch => {
+      ch.addEventListener('click', () => {
+        const start = parseFloat(ch.getAttribute('data-start'));
+        video.currentTime = start;
+        audio.currentTime = start;
+        if (video.paused) togglePlay();
+      });
+    });
+
+    // Volume & Mute
+    volumeSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      video.volume = val;
+      audio.volume = val;
+      video.muted = (val === 0);
+      audio.muted = (val === 0);
+      updateVolumeIcon(val);
+    });
+
+    muteBtn.addEventListener('click', () => {
+      const muted = !video.muted;
+      video.muted = muted;
+      audio.muted = muted;
+      updateVolumeIcon(muted ? 0 : video.volume);
+    });
+
+    function updateVolumeIcon(vol) {
+      if (vol === 0) {
+        muteBtn.innerHTML = '<i data-lucide="volume-x"></i>';
+      } else if (vol < 0.5) {
+        muteBtn.innerHTML = '<i data-lucide="volume-1"></i>';
+      } else {
+        muteBtn.innerHTML = '<i data-lucide="volume-2"></i>';
+      }
+      lucide.createIcons();
+    }
+
+    // Speed toggle
+    speedBtn.addEventListener('click', () => {
+      speedIdx = (speedIdx + 1) % speeds.length;
+      const spd = speeds[speedIdx];
+      video.playbackRate = spd;
+      audio.playbackRate = spd;
+      speedBtn.textContent = spd + 'x';
+    });
+
+    // Fullscreen
+    fullscreenBtn.addEventListener('click', () => {
+      const container = document.getElementById('video-container');
+      if (!document.fullscreenElement) {
+        container.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    });
+
+    // Theme handling
+    function initTheme() {
+      const savedTheme = localStorage.getItem('interviewace_theme') || 'dark';
+      applyTheme(savedTheme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyTheme(newTheme);
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('interviewace_theme', theme);
+      const icon = document.getElementById('theme-toggle-icon');
+      if (icon) {
+        icon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+        lucide.createIcons();
+      }
+    }
+
+    const themeToggle = document.getElementById('theme-toggle-btn');
+    if (themeToggle) {
+      themeToggle.addEventListener('click', toggleTheme);
+    }
+    initTheme();
+  </script>
+</body>
+</html>
