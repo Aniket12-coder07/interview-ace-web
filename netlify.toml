@@ -4,6 +4,28 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
+    X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "*.mp4"
+  [headers.values]
+    Content-Type = "video/mp4"
+    Accept-Ranges = "bytes"
+
+[[headers]]
+  for = "*.wav"
+  [headers.values]
+    Content-Type = "audio/wav"
+    Accept-Ranges = "bytes"
+
+[[redirects]]
+  from = "/demo"
+  to = "/demo_player.html"
+  status = 200
+
+[[redirects]]
+  from = "/video"
+  to = "/interviewace_demo_with_audio.mp4"
+  status = 200
