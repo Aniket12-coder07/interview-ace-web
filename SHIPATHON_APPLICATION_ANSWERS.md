@@ -78,26 +78,40 @@ Use this document to quickly fill out the official **RevenueCat Shipathon** subm
 
 ---
 
-## 🎬 6. 60-Second Demo Video Script for Judges
+## 🎬 6. Demo Video & Audio Narration for Judges
 
-* **[0:00 - 0:10] The Hook**:  
-  *"Meet InterviewAce — the AI technical interview prep platform built for developers, monetized with RevenueCat."*  
-  *(Show responsive landing dashboard and 7 interview tracks).*
+### 📹 Video & Audio Assets Available in Repository:
+1. **Full Video with Audio Narration (MP4)**:  
+   [`interviewace_demo_with_audio.mp4`](file:///c:/Users/Neha/Desktop/interview_ace_web/interviewace_demo_with_audio.mp4) *(High-definition 1920x924 H.264 video with AAC voiceover audio, 1m 35s, 4.8 MB)*
+2. **Interactive Video Player with Synced Chapters & Transcript**:  
+   [`demo_player.html`](file:///c:/Users/Neha/Desktop/interview_ace_web/demo_player.html) *(Launch locally at `http://localhost:8080/demo_player.html`)*
+3. **Voiceover Audio File (WAV)**:  
+   [`interviewace_voiceover.wav`](file:///c:/Users/Neha/Desktop/interview_ace_web/interviewace_voiceover.wav) *(Clear studio-paced narration, 94.8s)*
+4. **Visual Walkthrough Screen Recording**:  
+   [`interviewace_demo_video.webp`](file:///c:/Users/Neha/Desktop/interview_ace_web/interviewace_demo_video.webp)
 
-* **[0:10 - 0:25] The Interview**:  
-  *"Select your role, like AI/ML Engineer. Click 'Start Mock Interview' to receive instant Gemini 2.0 Flash questions, and dictate answers hands-free using voice recognition."*  
-  *(Show voice input and instant 4-axis rubric feedback).*
+### 🎙️ 60-Second Demo Video Narration Script:
 
-* **[0:25 - 0:40] The In-App Coding IDE**:  
-  *"Switch to the Coding Challenge tab to solve practical algorithmic problems. Run code in the live terminal console and submit for O(N) complexity evaluation."*  
-  *(Demonstrate code execution in JavaScript/Python and test output).*
+* **[0:00 - 0:14] The Hook**:  
+  *"Preparing for senior tech interviews is stressful and expensive, with human coaches charging upwards of two hundred dollars an hour. Meet InterviewAce, the AI-powered technical mock interviewer and coding IDE platform monetized with RevenueCat."*
 
-* **[0:40 - 0:55] RevenueCat Paywall & Free Trial**:  
-  *"Hitting the weekly limit triggers our high-converting glassmorphic paywall. Candidates can choose between weekly, annual, or start a 7-day free trial on the $4.99/mo Monthly Pro plan."*  
-  *(Click Upgrade, show paywall modal with tiers and trial badge).*
+* **[0:14 - 0:32] Dashboard & 7 Specialized Career Tracks**:  
+  *"From our dark glassmorphic dashboard, candidates can track their weekly free session quota, adjust interview length from 3 to 10 questions, and select from 7 specialized engineering career tracks."*
 
-* **[0:55 - 1:00] Closing**:  
-  *"InterviewAce — powered by Gemini 2.0 Flash and monetized with RevenueCat."*
+* **[0:32 - 0:48] Gemini 2.0 Flash & Speech Recognition**:  
+  *"Starting an interview connects candidates directly to Google Gemini 2.0 Flash. Candidates can listen to the AI interviewer read the question aloud, or dictate their answers hands-free using real-time speech recognition."*
+
+* **[0:48 - 1:04] In-Browser Coding Challenge IDE**:  
+  *"Switching to the Coding Challenge tab dynamically loads an independent algorithmic problem. The in-browser IDE supports JavaScript, Python, C++, and Java, executing code with live terminal output in milliseconds."*
+
+* **[1:04 - 1:18] 4-Axis AI Rubric Evaluation**:  
+  *"Submitting your response triggers an instant 4-axis rubric evaluation: grading Technical Depth, Algorithmic Complexity, Communication, and Edge Cases with strict anti-cheating scoring."*
+
+* **[1:18 - 1:30] RevenueCat Paywall & Free Trial**:  
+  *"To practice without limits, candidates can unlock Pro access via our high-converting RevenueCat paywall, featuring weekly, annual, or a monthly plan with an included 7-day free trial."*
+
+* **[1:30 - 1:35] Closing**:  
+  *"InterviewAce: democratizing elite interview preparation, powered by Gemini 2.0 Flash and monetized with RevenueCat."*
 
 ---
 
@@ -108,5 +122,7 @@ Use this document to quickly fill out the official **RevenueCat Shipathon** subm
 - [x] Dedicated coding questions separated from conceptual questions
 - [x] RevenueCat 4-tier paywall and `pro_access` entitlement architecture documented
 - [x] Promotional 16:9 banner image generated (`interview_ace_banner.jpg`)
-- [x] 60-Second video demo script prepared
+- [x] Demo Video with synced audio voiceover generated (`interviewace_demo_with_audio.mp4`)
+- [x] Interactive web video player created (`demo_player.html`)
+- [x] Standalone voiceover narration audio generated (`interviewace_voiceover.wav`)
 - [x] 1-Click Netlify & Vercel deployment guides included in `DEPLOYMENT_GUIDE.md`
